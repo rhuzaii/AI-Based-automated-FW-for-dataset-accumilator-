@@ -16,18 +16,28 @@ CATEGORIES = {
         "promo code voucher", "e-commerce deal offer"
     ],
     "gallery": [
-        "photograph of people", "nature landscape photo", 
-        "portrait photography", "stock photo of objects"
+        "nature landscape photo", "portrait photography", "city architecture",
+        "stock photo of objects", "artistic wallpaper"
     ],
     "boarding_pass": [
-        "airline boarding pass", "flight ticket document", "airport boarding pass"
+        "airline boarding pass document", 
+        "flight ticket with barcode", 
+        "airport boarding pass stub", 
+        "paper flight ticket",
+        "mobile boarding pass screen",
+        "passport and boarding pass"
     ]
 }
 
-# --- STAGE 2 CONFIGURATION: VALIDATION FILTERS ---
+# --- STAGE 2 CONFIGURATION: JUNK FILTERS ---
 JUNK_LABELS = [
+    # General Junk
     "website login screen", "loading spinner icon", "website logo", 
-    "plain white background", "error message text", "blurry unrecognizable image"
+    "plain white background", "error message text", "blurry unrecognizable image",
+    
+    # Boarding Pass Specific Junk (Things to ignore)
+    "airplane flying in sky", "airport runway view", "suitcase luggage", 
+    "person sleeping in airport", "airplane window view", "traveler selfie"
 ]
 
 def run_ai_pipeline():
@@ -54,7 +64,7 @@ def run_ai_pipeline():
     files = os.listdir(raw_folder)
     print(f"[INFO] Processing {len(files)} raw images...")
 
-    stats = {"valid": 0, "junk": 0}
+    stats = {"valid": 0, "junk": 0, "uncertain": 0}
 
     for filename in tqdm(files):
         filepath = os.path.join(raw_folder, filename)
@@ -73,9 +83,10 @@ def run_ai_pipeline():
                 stats["junk"] += 1
             
             # --- STAGE 3: AUTO-CATEGORIZATION ---
-            elif score < 0.25:
+            elif score < 0.22:
                 target_folder = "datasets/_uncertain"
                 final_category = "uncertain"
+                stats["uncertain"] += 1
             else:
                 final_category = label_to_category[best_desc]
                 target_folder = f"datasets/{final_category}/images"
@@ -89,7 +100,7 @@ def run_ai_pipeline():
             # Metadata Tagging (Stage 3 API)
             if final_category not in ["junk", "uncertain"]:
                 meta_path = f"datasets/{final_category}/metadata.csv"
-                write_metadata(meta_path, [filename, "Auto-Scraped", time.strftime("%Y-%m-%d"), final_category, score])
+                write_metadata(meta_path, [filename, "Auto-Scraped", "Public", time.strftime("%Y-%m-%d"), final_category, score])
             
         except Exception as e:
             print(f"[ERR] Failed on {filename}: {e}")
@@ -97,6 +108,7 @@ def run_ai_pipeline():
     print("\n=== PIPELINE REPORT ===")
     print(f"✅ Validated & Categorized: {stats['valid']}")
     print(f"❌ Discarded Junk: {stats['junk']}")
+    print(f"⚠️ Uncertain/Low Confidence: {stats['uncertain']}")
 
 if __name__ == "__main__":
     run_ai_pipeline()

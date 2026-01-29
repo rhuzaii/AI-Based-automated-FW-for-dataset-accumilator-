@@ -5,7 +5,6 @@ from transformers import CLIPProcessor, CLIPModel
 class AIClassifier:
     def __init__(self):
         print("[AI] Loading Validation Model (CLIP)...")
-        # We use a base model that is fast and accurate enough for PoC
         self.model_name = "openai/clip-vit-base-patch32"
         self.model = CLIPModel.from_pretrained(self.model_name)
         self.processor = CLIPProcessor.from_pretrained(self.model_name)
@@ -44,5 +43,4 @@ class AIClassifier:
             return best_label, confidence
             
         except Exception as e:
-            # print(f"[ERR] AI failed on {image_path}: {e}")
             return None, 0.0

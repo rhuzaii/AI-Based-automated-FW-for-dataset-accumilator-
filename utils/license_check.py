@@ -1,15 +1,20 @@
 from urllib.parse import urlparse
 import urllib.robotparser
 
-# -------------------------
-# Allowed domains (license safe)
-# -------------------------
+
+# Allowed domains 
 ALLOWED_DOMAINS = [
-    # gallery
+    # Gallery Category
+    "unsplash.com",
+    "images.unsplash.com",
+    "plus.unsplash.com",
+    "www.pexels.com",
+    "pexels.com",
+    "images.pexels.com",
     "picsum.photos",
     "loremflickr.com",
 
-    # events
+    # Events
     "www.greetingsisland.com",
     "greetingsisland.com",
     "gi-cdn.s3.amazonaws.com",
@@ -17,20 +22,26 @@ ALLOWED_DOMAINS = [
     "images.greetingsisland.com",
     "d1csarkz8obe9u.cloudfront.net",
 
-    # coupons (NEW)
+    # Coupons
     "www.grabon.in",
     "grabon.in",
-    "assets.grabon.in",          # GrabOn Images
+    "assets.grabon.in",
     "www.coupondunia.in",
     "coupondunia.in",
-    "cdn.coupondunia.in",        # CouponDunia Images
-    "img.gostor.com",            # Common CDN
-    "images.freekaamaal.com"     # FreeKaaMaal Images
+    "cdn.coupondunia.in",
+    "img.gostor.com",
+    "images.freekaamaal.com",
+
+    # Boarding Passes
+    "www.freepik.com",
+    "freepik.com",
+    "img.freepik.com"  
 ]
 
 def is_allowed_source(url):
     try:
         domain = urlparse(url).netloc
+        # Check against whitelist
         for allowed in ALLOWED_DOMAINS:
             if domain == allowed or domain.endswith("." + allowed):
                 return True
@@ -38,9 +49,8 @@ def is_allowed_source(url):
     except:
         return False
 
-# -------------------------
+
 # robots.txt check
-# -------------------------
 def allowed_by_robots(url):
     try:
         rp = urllib.robotparser.RobotFileParser()
