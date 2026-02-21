@@ -1,0 +1,17 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+
+# Datasets & downloaded images
+datasets/
+*.jpg
+*.jpeg
+*.png
+*.webp
+
+# OS files
+.DS_Store
+Thumbs.db
