@@ -5,6 +5,10 @@ from utils.ai_classifier import AIClassifier
 from utils.metadata import write_metadata
 import time
 
+from utils.web_link_finder import find_links
+from scraper_config import SEARCH_QUERIES, MAX_PAGES
+from universal_scraper import UniversalScraper
+
 # --- STAGE 3 CONFIGURATION: CATEGORIES ---
 CATEGORIES = {
     "events": [
@@ -19,14 +23,24 @@ CATEGORIES = {
         "nature landscape photo", "portrait photography", "city architecture",
         "stock photo of objects", "artistic wallpaper"
     ],
+    # "boarding_pass": [
+    #     "airline boarding pass document", 
+    #     "flight ticket with barcode", 
+    #     "airport boarding pass stub", 
+    #     "paper flight ticket",
+    #     "mobile boarding pass screen",
+    #     "passport and boarding pass"
+    # ]
     "boarding_pass": [
-        "airline boarding pass document", 
-        "flight ticket with barcode", 
-        "airport boarding pass stub", 
-        "paper flight ticket",
-        "mobile boarding pass screen",
-        "passport and boarding pass"
+    "airline boarding pass with barcode",
+    "flight boarding pass ticket document",
+    "airport boarding pass with QR code",
+    "printed boarding pass paper",
+    "mobile boarding pass screen showing flight details",
+    "boarding pass showing flight number and seat number",
+    "boarding pass with passenger name and gate number"
     ]
+
 }
 
 # --- STAGE 2 CONFIGURATION: JUNK FILTERS ---
@@ -38,9 +52,54 @@ JUNK_LABELS = [
     # Boarding Pass Specific Junk (Things to ignore)
     "airplane flying in sky", "airport runway view", "suitcase luggage", 
     "person sleeping in airport", "airplane window view", "traveler selfie"
+    "airplane flying in sky",
+    "airport terminal interior",
+    "airport runway view",
+    "travel suitcase luggage",
+    "passport only document",
+    "airplane wing window view",
+    "traveler selfie in airport",
+    "boarding gate signboard",
+    "flight booking app home screen",
+    "check-in counter at airport",
+    "airline logo branding"
 ]
 
 def run_ai_pipeline():
+    # ===============================
+    # STAGE 1: AUTO LINK DISCOVERY
+    # ===============================
+    print("\n[STAGE 1] Discovering boarding-pass webpages...")
+
+    source_pages = set()
+    for query in SEARCH_QUERIES:
+        print(f"[SEARCH] {query}")
+        links = find_links(query, max_links=MAX_PAGES)
+        source_pages.update(links)
+
+    source_pages = list(source_pages)
+    print(f"[FOUND] {len(source_pages)} source webpages")
+
+    if not source_pages:
+        print("[ERR] No source pages found.")
+        return
+
+    # ===============================
+    # STAGE 2: IMAGE SCRAPING
+    # ===============================
+    print("\n[STAGE 2] Scraping images from discovered pages...")
+
+    scraper = UniversalScraper(
+        source_urls=source_pages,
+        download_dir="datasets/raw_incoming"
+    )
+
+    scraper.run()
+
+    # ===============================
+    # STAGE 3: AI VALIDATION
+    # ===============================
+    
     raw_folder = "datasets/raw_incoming"
     if not os.path.exists(raw_folder) or not os.listdir(raw_folder):
         print("[ERR] No raw data found. Run Universal Scraper first.")
@@ -106,9 +165,9 @@ def run_ai_pipeline():
             print(f"[ERR] Failed on {filename}: {e}")
 
     print("\n=== PIPELINE REPORT ===")
-    print(f"✅ Validated & Categorized: {stats['valid']}")
-    print(f"❌ Discarded Junk: {stats['junk']}")
-    print(f"⚠️ Uncertain/Low Confidence: {stats['uncertain']}")
+    print(f"Validated & Categorized: {stats['valid']}")
+    print(f"Discarded Junk: {stats['junk']}")
+    print(f"Uncertain/Low Confidence: {stats['uncertain']}")
 
 if __name__ == "__main__":
     run_ai_pipeline()
