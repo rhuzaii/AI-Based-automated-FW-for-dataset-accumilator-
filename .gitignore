@@ -1,0 +1,32 @@
+# Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.env/
+
+# Logs
+*.log
+
+# OS-specific files
+.DS_Store
+
+# Scraped images and datasets (large files)
+scraped_images/
+datasets/
+ppt/
+
+# Model checkpoints or large binaries
+*.h5
+*.ckpt
+*.pth
+*.pt
+
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints/
+
+# VS Code settings
+.vscode/
